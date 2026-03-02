@@ -2,6 +2,7 @@
 .claude
 .codex/
 .cursor/
+.history
 
 # Python
 .env
