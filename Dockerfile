@@ -32,6 +32,4 @@ RUN mkdir -p /app/data
 
 EXPOSE 8080
 
-VOLUME /app/data
-
 CMD ["uv", "run", "uvicorn", "web.app:app", "--host", "0.0.0.0", "--port", "8080"]
