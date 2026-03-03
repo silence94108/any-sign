@@ -4,9 +4,14 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from web.database import (
-	get_all_accounts, get_account, create_account,
-	update_account, delete_account, toggle_account,
-	get_all_providers, get_provider,
+	create_account,
+	delete_account,
+	get_account,
+	get_all_accounts,
+	get_all_providers,
+	get_provider,
+	toggle_account,
+	update_account,
 )
 
 router = APIRouter()

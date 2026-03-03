@@ -5,7 +5,6 @@
 然后通过 API 获取余额信息。
 """
 
-import asyncio
 import logging
 import tempfile
 

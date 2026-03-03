@@ -297,7 +297,7 @@ def _execute_check_in_once(client, account_name: str, provider_config, headers: 
 		if is_cloudflare_h2_challenge(response):
 			print(f'[CF-H2] {account_name}: Cloudflare HTTP/2 challenge detected (403)')
 			return {'success': False, 'status': 'failed',
-					'message': f'Cloudflare HTTP/2 challenge (HTTP 403)',
+					'message': 'Cloudflare HTTP/2 challenge (HTTP 403)',
 					'_cf_h2_challenge': True}
 		# 检测 WAF 挑战
 		if is_waf_challenge_response(response_text):

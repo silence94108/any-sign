@@ -332,8 +332,9 @@ async def _run_browser_login_checkin(account_row: dict, triggered_by: str) -> di
 
 async def _run_cookie_checkin(account_row: dict, triggered_by: str) -> dict:
 	"""使用 Cookie 方式签到（带 WAF cookie 缓存和挑战检测）"""
-	from checkin import check_in_account, is_waf_challenge_response, parse_cookies
 	from dataclasses import replace as dc_replace
+
+	from checkin import check_in_account, is_waf_challenge_response, parse_cookies
 	from utils.config import AppConfig
 
 	provider_config = await _build_provider_config(account_row['provider'])
