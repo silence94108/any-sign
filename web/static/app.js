@@ -2,21 +2,29 @@
 function showToast(message, type = 'success') {
 	const container = document.getElementById('toast-container');
 	const toast = document.createElement('div');
-	const styles = {
-		success: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-		error: 'bg-red-50 text-red-800 border-red-200',
-		info: 'bg-blue-50 text-blue-800 border-blue-200',
+	const accents = {
+		success: { border: '#10b981', bg: '#f0fdf4', text: '#166534', icon: '#10b981' },
+		error:   { border: '#ef4444', bg: '#fef2f2', text: '#991b1b', icon: '#ef4444' },
+		info:    { border: '#6366f1', bg: '#eef2ff', text: '#3730a3', icon: '#6366f1' },
 	};
 	const icons = {
-		success: '<svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
-		error: '<svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>',
-		info: '<svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>',
+		success: '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+		error:   '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>',
+		info:    '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>',
 	};
-	const colorClass = styles[type] || styles.info;
+	const a = accents[type] || accents.info;
 	const icon = icons[type] || icons.info;
 
-	toast.className = `toast flex items-center ${colorClass} border rounded-lg px-4 py-3 shadow-sm text-sm font-medium`;
-	toast.innerHTML = `${icon}<span>${message}</span>`;
+	toast.className = 'toast flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium shadow-md';
+	toast.style.cssText = `
+		background: ${a.bg};
+		color: ${a.text};
+		border: 1px solid ${a.border}33;
+		border-left: 3px solid ${a.border};
+		min-width: 200px;
+		max-width: 320px;
+	`;
+	toast.innerHTML = `<span style="color:${a.icon}">${icon}</span><span>${message}</span>`;
 	container.appendChild(toast);
 	setTimeout(() => toast.remove(), 3000);
 }

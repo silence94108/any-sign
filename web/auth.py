@@ -4,7 +4,7 @@ import os
 import time
 
 from fastapi import Request, Response
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'anyrouter-checkin-secret-key-change-me')
 ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin')
@@ -67,6 +67,8 @@ async def auth_middleware(request: Request, call_next):
 		return await call_next(request)
 
 	if not is_authenticated(request):
+		if path.startswith('/api/'):
+			return JSONResponse({'detail': 'Unauthorized'}, status_code=401)
 		return RedirectResponse(url='/login', status_code=302)
 
 	return await call_next(request)

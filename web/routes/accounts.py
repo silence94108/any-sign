@@ -1,7 +1,7 @@
 import json
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from web.database import (
 	create_account,
@@ -28,6 +28,69 @@ async def accounts_page(request: Request):
 		'providers': providers,
 		'active_page': 'accounts',
 	})
+
+
+@router.post('/api/accounts/export')
+async def api_export_accounts(request: Request):
+	body = await request.json()
+	ids = body.get('ids', [])
+	accounts = await get_all_accounts()
+	if ids:
+		id_set = {int(i) for i in ids}
+		accounts = [a for a in accounts if a['id'] in id_set]
+	export_fields = ['name', 'provider', 'auth_method', 'cookies', 'api_user',
+					 'username', 'password', 'domain', 'enabled']
+	data = [{k: acc[k] for k in export_fields if k in acc} for acc in accounts]
+	content = json.dumps(data, ensure_ascii=False, indent=2)
+	return Response(
+		content=content,
+		media_type='application/json',
+		headers={'Content-Disposition': 'attachment; filename="accounts_export.json"'},
+	)
+
+
+@router.post('/api/accounts/import')
+async def api_import_accounts(request: Request):
+	try:
+		data = await request.json()
+	except Exception:
+		return JSONResponse({'success': False, 'message': 'JSON 格式不正确'})
+
+	if not isinstance(data, list):
+		return JSONResponse({'success': False, 'message': '导入数据必须是数组格式'})
+
+	existing = await get_all_accounts()
+	existing_names = {acc['name'] for acc in existing}
+
+	imported, skipped = 0, 0
+	for item in data:
+		name = (item.get('name') or '').strip()
+		if not name:
+			skipped += 1
+			continue
+		if name in existing_names:
+			skipped += 1
+			continue
+
+		auth_method = item.get('auth_method', 'cookie')
+		cookies_raw = item.get('cookies', '')
+		if isinstance(cookies_raw, dict):
+			cookies_raw = json.dumps(cookies_raw)
+
+		await create_account(
+			name=name,
+			provider=item.get('provider', 'anyrouter'),
+			auth_method=auth_method,
+			cookies=cookies_raw or '',
+			api_user=item.get('api_user', ''),
+			username=item.get('username', ''),
+			password=item.get('password', ''),
+			domain=item.get('domain', ''),
+		)
+		existing_names.add(name)
+		imported += 1
+
+	return JSONResponse({'success': True, 'imported': imported, 'skipped': skipped})
 
 
 @router.post('/api/accounts')

@@ -4,11 +4,24 @@
 <div class="w-full">
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
 		<h2 class="text-xl font-semibold text-slate-900">账号管理</h2>
-		<button onclick="showAddModal()"
-			class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 shadow-sm transition-colors cursor-pointer">
-			<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/></svg>
-			添加账号
-		</button>
+		<div class="flex items-center gap-2">
+			<input type="file" id="import-file-input" accept=".json" class="hidden" onchange="importAccounts(this)">
+			<button onclick="document.getElementById('import-file-input').click()"
+				class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-gray-50 shadow-sm transition-colors cursor-pointer">
+				<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M8 12l4 4 4-4M12 4v12"/></svg>
+				导入
+			</button>
+			<button onclick="showExportModal()"
+				class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-gray-50 shadow-sm transition-colors cursor-pointer">
+				<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M8 8l4-4 4 4M12 4v12"/></svg>
+				导出
+			</button>
+			<button onclick="showAddModal()"
+				class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 shadow-sm transition-colors cursor-pointer">
+				<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/></svg>
+				添加账号
+			</button>
+		</div>
 	</div>
 
 	{% if accounts %}
@@ -183,6 +196,50 @@
 		</form>
 	</div>
 </div>
+
+<!-- Export Modal -->
+<div id="export-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" onclick="if(event.target===this)closeExportModal()">
+	<div class="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
+		<div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+			<h3 class="text-lg font-semibold text-slate-900">选择要导出的账号</h3>
+			<button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+				<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+			</button>
+		</div>
+		<div class="px-6 py-3 border-b border-gray-100 bg-gray-50">
+			<label class="flex items-center gap-2.5 cursor-pointer select-none">
+				<input type="checkbox" id="export-select-all" onchange="toggleSelectAll(this)"
+					class="w-4 h-4 rounded border-gray-300 text-indigo-600 cursor-pointer">
+				<span class="text-sm font-medium text-slate-700">全选</span>
+				<span id="export-count" class="ml-auto text-xs text-slate-400">已选 0 / {{ accounts|length }}</span>
+			</label>
+		</div>
+		<div class="overflow-y-auto flex-1 px-6 py-2">
+			<div class="space-y-1 py-2">
+				{% for acc in accounts %}
+				<label class="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-gray-50 cursor-pointer select-none">
+					<input type="checkbox" name="export-ids" value="{{ acc.id }}" onchange="updateExportCount()"
+						class="w-4 h-4 rounded border-gray-300 text-indigo-600 cursor-pointer">
+					<span class="w-2 h-2 rounded-full flex-shrink-0 {% if acc.enabled %}bg-emerald-500{% else %}bg-gray-300{% endif %}"></span>
+					<span class="text-sm font-medium text-slate-900 flex-1 truncate">{{ acc.name }}</span>
+					<span class="text-xs text-slate-400 flex-shrink-0">{{ acc.provider }}</span>
+				</label>
+				{% endfor %}
+			</div>
+		</div>
+		<div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+			<button onclick="closeExportModal()"
+				class="px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-gray-50 transition-colors cursor-pointer">
+				取消
+			</button>
+			<button onclick="doExport()"
+				class="px-4 py-2.5 bg-indigo-600 rounded-lg text-sm font-medium text-white hover:bg-indigo-700 transition-colors cursor-pointer">
+				<svg class="w-4 h-4 mr-1.5 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M8 8l4-4 4 4M12 4v12"/></svg>
+				导出所选
+			</button>
+		</div>
+	</div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -278,8 +335,13 @@ async function submitAccount(e) {
 	const method = id ? 'PUT' : 'POST';
 	const res = await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
 	const result = await res.json();
-	if (result.success) { showToast(id ? '账号已更新' : '账号已添加', 'success'); setTimeout(() => location.reload(), 500); }
-	else { showToast(result.message || '操作失败', 'error'); }
+	if (result.success) {
+		closeModal();
+		showToast(id ? '账号已更新' : '账号已添加', 'success');
+		setTimeout(() => location.reload(), 1200);
+	} else {
+		showToast(result.message || '操作失败', 'error');
+	}
 }
 async function deleteAccount(id, name) {
 	if (!confirm(`确定删除账号 "${name}" 吗？`)) return;
@@ -295,8 +357,86 @@ async function deleteAccount(id, name) {
 async function toggleAccount(id) {
 	const res = await fetch(`/api/accounts/${id}/toggle`, { method: 'POST' });
 	const result = await res.json();
-	if (result.success) { showToast('状态已切换', 'success'); setTimeout(() => location.reload(), 500); }
+	if (result.success) { showToast('状态已切换', 'success'); setTimeout(() => location.reload(), 800); }
 	else { showToast(result.message || '操作失败', 'error'); }
+}
+// --- Export Modal ---
+function showExportModal() {
+	document.querySelectorAll('input[name="export-ids"]').forEach(cb => cb.checked = false);
+	document.getElementById('export-select-all').checked = false;
+	updateExportCount();
+	document.getElementById('export-modal').classList.remove('hidden');
+	document.getElementById('export-modal').classList.add('flex');
+}
+function closeExportModal() {
+	document.getElementById('export-modal').classList.add('hidden');
+	document.getElementById('export-modal').classList.remove('flex');
+}
+function toggleSelectAll(el) {
+	document.querySelectorAll('input[name="export-ids"]').forEach(cb => cb.checked = el.checked);
+	updateExportCount();
+}
+function updateExportCount() {
+	const checked = document.querySelectorAll('input[name="export-ids"]:checked').length;
+	const total = document.querySelectorAll('input[name="export-ids"]').length;
+	document.getElementById('export-count').textContent = `已选 ${checked} / ${total}`;
+	document.getElementById('export-select-all').checked = checked === total && total > 0;
+	document.getElementById('export-select-all').indeterminate = checked > 0 && checked < total;
+}
+async function doExport() {
+	const ids = [...document.querySelectorAll('input[name="export-ids"]:checked')].map(cb => Number(cb.value));
+	if (ids.length === 0) {
+		showToast('请至少选择一个账号', 'error');
+		return;
+	}
+	closeExportModal();
+	try {
+		const res = await fetch('/api/accounts/export', {
+			method: 'POST',
+			headers: {'Content-Type': 'application/json'},
+			body: JSON.stringify({ ids }),
+		});
+		if (res.status === 401) {
+			showToast('登录已过期，请重新登录', 'error');
+			setTimeout(() => location.href = '/login', 1200);
+			return;
+		}
+		if (!res.ok) throw new Error('导出失败');
+		const blob = await res.blob();
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = 'accounts_export.json';
+		a.click();
+		URL.revokeObjectURL(url);
+	} catch (e) {
+		showToast(e.message || '导出失败', 'error');
+	}
+}
+// --- Import ---
+async function importAccounts(input) {
+	const file = input.files[0];
+	if (!file) return;
+	input.value = '';
+	let data;
+	try {
+		data = JSON.parse(await file.text());
+	} catch {
+		showToast('文件格式不正确，需为 JSON', 'error');
+		return;
+	}
+	const res = await fetch('/api/accounts/import', {
+		method: 'POST',
+		headers: {'Content-Type': 'application/json'},
+		body: JSON.stringify(data),
+	});
+	const result = await res.json();
+	if (result.success) {
+		showToast(`导入完成：成功 ${result.imported} 条，跳过 ${result.skipped} 条`, 'success');
+		setTimeout(() => location.reload(), 1500);
+	} else {
+		showToast(result.message || '导入失败', 'error');
+	}
 }
 </script>
 {% endblock %}
