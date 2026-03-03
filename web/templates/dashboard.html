@@ -1,21 +1,20 @@
 {% extends "base.html" %}
-{% block title %}仪表盘 - AnyRouter Check-in{% endblock %}
+{% block title %}仪表盘 - any-sign{% endblock %}
 {% block content %}
 <div class="w-full">
-	<div class="flex items-center justify-between mb-8 gap-4 flex-wrap">
-		<div class="relative">
-			<h2 class="text-3xl font-black tracking-tight text-black">仪表盘</h2>
-			<p class="text-sm font-bold text-black mt-1">下次签到: <span id="next-run-text">{{ next_run or '未设置' }}</span></p>
-			<div class="absolute -top-2 -left-4 w-4 h-4 bg-[#ff6b6b] rounded-full border-2 border-black"></div>
+	<div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+		<div>
+			<h2 class="text-xl font-semibold text-slate-900">仪表盘</h2>
+			<p class="text-sm text-slate-500 mt-0.5">下次签到: <span id="next-run-text">{{ next_run or '未设置' }}</span></p>
 		</div>
-		<div class="flex items-center space-x-3 flex-wrap gap-y-2">
-			<div class="flex items-center border-4 border-black bg-white shadow-[4px_4px_0px_#5f27cd] relative">
-				<div class="px-3 py-2.5 bg-[#5f27cd] text-white font-black text-xs border-r-4 border-black flex items-center">
-					<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+		<div class="flex items-center gap-2 flex-wrap">
+			<div class="flex items-center bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+				<span class="px-3 py-2 bg-gray-50 text-xs font-medium text-slate-600 border-r border-gray-200 flex items-center whitespace-nowrap">
+					<svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
 					间隔
-				</div>
+				</span>
 				<select id="schedule-select" onchange="updateSchedule()"
-					class="px-3 py-2.5 bg-white text-black font-black text-xs focus:outline-none cursor-pointer">
+					class="px-3 py-2 bg-white text-sm text-slate-700 focus:outline-none cursor-pointer">
 					<option value="0 * * * *" {% if cron_expression == '0 * * * *' %}selected{% endif %}>每 1 小时</option>
 					<option value="0 */2 * * *" {% if cron_expression == '0 */2 * * *' %}selected{% endif %}>每 2 小时</option>
 					<option value="0 */4 * * *" {% if cron_expression == '0 */4 * * *' %}selected{% endif %}>每 4 小时</option>
@@ -27,86 +26,73 @@
 				</select>
 			</div>
 			<input type="text" id="custom-cron" value="{{ cron_expression }}" placeholder="cron 表达式"
-				class="px-3 py-2.5 w-40 bg-white border-4 border-black text-black font-bold text-xs font-mono focus:outline-none shadow-[4px_4px_0px_#feca57] {% if cron_expression in ['0 * * * *', '0 */2 * * *', '0 */4 * * *', '0 */6 * * *', '0 */8 * * *', '0 */12 * * *', '0 0 * * *'] %}hidden{% endif %}"
+				class="px-3 py-2 w-36 bg-white border border-gray-200 rounded-lg text-sm font-mono text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm {% if cron_expression in ['0 * * * *', '0 */2 * * *', '0 */4 * * *', '0 */6 * * *', '0 */8 * * *', '0 */12 * * *', '0 0 * * *'] %}hidden{% endif %}"
 				onkeydown="if(event.key==='Enter'){saveCustomCron();}">
 			<button id="btn-save-cron" onclick="saveCustomCron()"
-				class="px-3 py-2.5 border-4 border-black bg-[#feca57] text-black font-black text-xs shadow-[4px_4px_0px_#000] transition-all duration-150 hover:bg-[#ff9ff3] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none {% if cron_expression in ['0 * * * *', '0 */2 * * *', '0 */4 * * *', '0 */6 * * *', '0 */8 * * *', '0 */12 * * *', '0 0 * * *'] %}hidden{% endif %}">
+				class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-gray-50 shadow-sm transition-colors cursor-pointer {% if cron_expression in ['0 * * * *', '0 */2 * * *', '0 */4 * * *', '0 */6 * * *', '0 */8 * * *', '0 */12 * * *', '0 0 * * *'] %}hidden{% endif %}">
 				保存
 			</button>
 			<button onclick="runCheckinAll()" id="btn-checkin-all"
-				class="bg-[#1dd1a1] text-black px-6 py-2.5 border-4 border-black font-black text-sm shadow-[6px_6px_0px_#000] transition-all duration-150 hover:bg-[#48dbfb] hover:shadow-[8px_8px_0px_#000] active:translate-x-[6px] active:translate-y-[6px] active:shadow-none inline-flex items-center">
-				<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+				class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 shadow-sm transition-colors cursor-pointer">
+				<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
 				立即全部签到
 			</button>
 		</div>
 	</div>
 
 	<!-- Stats -->
-	<div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
-		<div class="group bg-yellow-400 border-4 border-black p-5 shadow-[6px_6px_0px_#000] relative overflow-hidden transition-all duration-150 hover:shadow-[8px_8px_0px_#000]">
-			<div class="absolute -top-2 -right-2 w-8 h-8 bg-[#ff9ff3] rounded-full border-4 border-black transition-all duration-150 group-hover:translate-x-2 group-hover:-translate-y-1"></div>
-			<p class="text-xs font-black text-black">账号总数</p>
-			<p class="text-4xl font-black text-black mt-1">{{ accounts|length }}</p>
+	<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
+		<div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+			<p class="text-xs font-medium text-slate-500">账号总数</p>
+			<p class="text-2xl font-semibold text-slate-900 mt-1">{{ accounts|length }}</p>
 		</div>
-		<div class="group bg-[#1dd1a1] border-4 border-black p-5 shadow-[6px_6px_0px_#000] relative overflow-hidden transition-all duration-150 hover:shadow-[8px_8px_0px_#000]">
-			<div class="absolute -bottom-1 -right-1 w-6 h-6 bg-yellow-400 border-4 border-black rotate-45 transition-all duration-150 group-hover:-translate-x-2 group-hover:rotate-[60deg]"></div>
-			<p class="text-xs font-black text-black">已启用</p>
-			<p class="text-4xl font-black text-black mt-1">{{ accounts|selectattr('enabled')|list|length }}</p>
+		<div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+			<p class="text-xs font-medium text-slate-500">已启用</p>
+			<p class="text-2xl font-semibold text-emerald-600 mt-1">{{ accounts|selectattr('enabled')|list|length }}</p>
 		</div>
-		<div class="group bg-[#48dbfb] border-4 border-black p-5 shadow-[6px_6px_0px_#000] relative overflow-hidden transition-all duration-150 hover:shadow-[8px_8px_0px_#000]">
-			<div class="absolute top-1 right-2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[12px] border-b-[#ff6b6b] transition-all duration-150 group-hover:translate-y-1 group-hover:rotate-12"></div>
-			<p class="text-xs font-black text-black">签到成功</p>
-			<p class="text-4xl font-black text-black mt-1">{{ success_count }}</p>
+		<div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+			<p class="text-xs font-medium text-slate-500">签到成功</p>
+			<p class="text-2xl font-semibold text-indigo-600 mt-1">{{ success_count }}</p>
 		</div>
-		<div class="group bg-[#feca57] border-4 border-black p-5 shadow-[6px_6px_0px_#000] relative overflow-hidden transition-all duration-150 hover:shadow-[8px_8px_0px_#000]">
-			<div class="absolute top-1 right-2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[12px] border-b-[#5f27cd] transition-all duration-150 group-hover:translate-y-1 group-hover:rotate-12"></div>
-			<p class="text-xs font-black text-black">总余额</p>
-			<p class="text-4xl font-black text-black mt-1">{{ '$%.2f'|format(total_balance) }}</p>
+		<div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+			<p class="text-xs font-medium text-slate-500">总余额</p>
+			<p class="text-2xl font-semibold text-slate-900 mt-1">{{ '$%.2f'|format(total_balance) }}</p>
 		</div>
-		<div class="group bg-[#ff6b6b] border-4 border-black p-5 shadow-[6px_6px_0px_#000] relative overflow-hidden transition-all duration-150 hover:shadow-[8px_8px_0px_#000]">
-			<div class="absolute -top-1 -left-1 w-7 h-7 bg-yellow-400 rounded-full border-4 border-black transition-all duration-150 group-hover:translate-x-3 group-hover:translate-y-2"></div>
-			<p class="text-xs font-black text-white">签到失败</p>
-			<p class="text-4xl font-black text-white mt-1">{{ accounts|selectattr('last_status', 'equalto', 'failed')|list|length }}</p>
+		<div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm col-span-2 sm:col-span-1">
+			<p class="text-xs font-medium text-slate-500">签到失败</p>
+			<p class="text-2xl font-semibold text-red-600 mt-1">{{ accounts|selectattr('last_status', 'equalto', 'failed')|list|length }}</p>
 		</div>
 	</div>
 
-	<div class="h-3 my-6 squiggle" style="background-image: url('data:image/svg+xml,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%2240%22 height%3D%2212%22%3E%3Cpath d%3D%22M0 6c5 0 5-6 10-6s5 6 10 6 5-6 10-6 5 6 10 6%22 fill%3D%22none%22 stroke%3D%22%23000%22 stroke-width%3D%223%22%2F%3E%3C%2Fsvg%3E'); background-repeat: repeat-x; background-position: center;"></div>
-
-	<h3 class="text-xl font-black text-black mb-4 relative inline-block">
-		账号状态
-		<div class="absolute -top-1 -right-5 w-3 h-3 bg-[#5f27cd] rotate-45 border-2 border-black"></div>
-	</h3>
+	<h3 class="text-base font-semibold text-slate-900 mb-4">账号状态</h3>
 	{% if accounts %}
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-8">
-		{% set card_colors = ['bg-pink-300', 'bg-[#48dbfb]', 'bg-yellow-400', 'bg-[#1dd1a1]', 'bg-[#ff9ff3]'] %}
+	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
 		{% for acc in accounts %}
-		<div class="group border-4 border-black p-5 shadow-[6px_6px_0px_#000] {{ card_colors[loop.index0 % 5] }} relative overflow-hidden transition-all duration-150 hover:shadow-[8px_8px_0px_#000]" id="card-{{ acc.id }}">
-			<div class="absolute -top-2 -right-2 w-8 h-8 bg-[#ff6b6b] rounded-full border-4 border-black transition-all duration-150 group-hover:translate-x-4 group-hover:-translate-y-2"></div>
-			<div class="absolute bottom-2 right-3 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] border-t-[#5f27cd] transition-all duration-150 group-hover:-translate-x-2 group-hover:rotate-12"></div>
+		<div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow" id="card-{{ acc.id }}">
 			<div class="flex items-center justify-between mb-3">
-				<div class="flex items-center">
-					<span class="w-4 h-4 border-4 border-black mr-2 {% if acc.enabled %}bg-[#1dd1a1]{% else %}bg-white{% endif %}"></span>
-					<h4 class="font-black text-black text-sm transition-colors duration-150 group-hover:text-[#ff6b6b] truncate max-w-[150px]" title="{{ acc.name }}">{{ acc.name }}</h4>
+				<div class="flex items-center min-w-0">
+					<span class="w-2.5 h-2.5 rounded-full mr-2.5 flex-shrink-0 {% if acc.enabled %}bg-emerald-500{% else %}bg-gray-300{% endif %}"></span>
+					<h4 class="font-medium text-slate-900 text-sm truncate" title="{{ acc.name }}">{{ acc.name }}</h4>
 				</div>
-				<span class="text-xs px-2 py-1 border-4 border-black font-black
-					{% if acc.last_status == 'success' %}bg-[#1dd1a1] text-black
-					{% elif acc.last_status == 'already_checked_in' %}bg-[#feca57] text-black
-					{% elif acc.last_status == 'failed' %}bg-[#ff6b6b] text-white
-					{% else %}bg-white text-black{% endif %}">
-					{% if acc.last_status == 'success' %}成功{% elif acc.last_status == 'already_checked_in' %}今日已签到{% elif acc.last_status == 'failed' %}失败{% else %}未签到{% endif %}
+				<span class="ml-2 flex-shrink-0 inline-flex px-2 py-0.5 rounded-full text-xs font-medium
+					{% if acc.last_status == 'success' %}bg-emerald-50 text-emerald-700
+					{% elif acc.last_status == 'already_checked_in' %}bg-amber-50 text-amber-700
+					{% elif acc.last_status == 'failed' %}bg-red-50 text-red-700
+					{% else %}bg-gray-50 text-gray-500{% endif %}">
+					{% if acc.last_status == 'success' %}成功{% elif acc.last_status == 'already_checked_in' %}已签到{% elif acc.last_status == 'failed' %}失败{% else %}未签到{% endif %}
 				</span>
 			</div>
-			<div class="space-y-1.5 text-xs font-bold text-black">
-				<div class="flex justify-between"><span>Provider</span><span>{{ acc.provider }}</span></div>
-				{% if acc.domain %}<div class="flex justify-between"><span>域名</span><span class="truncate max-w-[120px]" title="{{ acc.domain }}">{{ acc.domain }}</span></div>{% endif %}
-				<div class="flex justify-between"><span>认证</span><span>{% if acc.auth_method == 'browser_login' %}浏览器登录{% else %}Cookie{% endif %}</span></div>
-				<div class="flex justify-between"><span>余额</span><span class="font-black">{{ '$%.2f'|format(acc.last_balance) if acc.last_balance is not none else '-' }}</span></div>
-				<div class="flex justify-between"><span>已用</span><span>{{ '$%.2f'|format(acc.last_used) if acc.last_used is not none else '-' }}</span></div>
-				<div class="flex justify-between"><span>上次签到</span><span>{{ acc.last_checkin[:16] if acc.last_checkin else '-' }}</span></div>
+			<div class="space-y-1.5 text-sm">
+				<div class="flex justify-between"><span class="text-slate-500">Provider</span><span class="text-slate-700 font-medium">{{ acc.provider }}</span></div>
+				{% if acc.domain %}<div class="flex justify-between"><span class="text-slate-500">域名</span><span class="text-slate-700 truncate max-w-[140px]" title="{{ acc.domain }}">{{ acc.domain }}</span></div>{% endif %}
+				<div class="flex justify-between"><span class="text-slate-500">认证</span><span class="text-slate-700">{% if acc.auth_method == 'browser_login' %}浏览器登录{% else %}Cookie{% endif %}</span></div>
+				<div class="flex justify-between"><span class="text-slate-500">余额</span><span class="text-slate-900 font-medium">{{ '$%.2f'|format(acc.last_balance) if acc.last_balance is not none else '-' }}</span></div>
+				<div class="flex justify-between"><span class="text-slate-500">已用</span><span class="text-slate-700">{{ '$%.2f'|format(acc.last_used) if acc.last_used is not none else '-' }}</span></div>
+				<div class="flex justify-between"><span class="text-slate-500">上次签到</span><span class="text-slate-700 text-xs">{{ acc.last_checkin[:16] if acc.last_checkin else '-' }}</span></div>
 			</div>
-			<div class="mt-4 pt-3 border-t-4 border-black">
+			<div class="mt-4 pt-3 border-t border-gray-100">
 				<button onclick="runCheckinSingle({{ acc.id }})"
-					class="bg-white text-black px-4 py-1.5 border-4 border-black font-black text-xs shadow-[3px_3px_0px_#000] transition-all duration-150 hover:bg-[#feca57] hover:shadow-[5px_5px_0px_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none">
+					class="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors cursor-pointer">
 					手动签到
 				</button>
 			</div>
@@ -114,83 +100,76 @@
 		{% endfor %}
 	</div>
 	{% else %}
-	<div class="border-4 border-black p-10 text-center mb-8 bg-white shadow-[6px_6px_0px_#000] relative">
-		<div class="absolute top-2 right-4 w-6 h-6 bg-[#ff9ff3] rounded-full border-4 border-black"></div>
-		<p class="font-black text-black text-lg">暂无账号</p>
-		<a href="/accounts" class="mt-2 inline-block text-[#ff6b6b] font-black underline decoration-4 hover:text-[#5f27cd]">添加第一个账号</a>
+	<div class="bg-white rounded-xl border border-gray-200 p-10 text-center mb-8 shadow-sm">
+		<p class="text-slate-500">暂无账号</p>
+		<a href="/accounts" class="mt-2 inline-block text-indigo-600 font-medium hover:text-indigo-800 transition-colors">添加第一个账号</a>
 	</div>
 	{% endif %}
 
-	<div class="h-3 my-6" style="background-image: url('data:image/svg+xml,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%2240%22 height%3D%2212%22%3E%3Cpath d%3D%22M0 6c5 0 5-6 10-6s5 6 10 6 5-6 10-6 5 6 10 6%22 fill%3D%22none%22 stroke%3D%22%23ff6b6b%22 stroke-width%3D%223%22%2F%3E%3C%2Fsvg%3E'); background-repeat: repeat-x; background-position: center;"></div>
-
 	<div class="flex items-center justify-between mb-4 gap-4 flex-wrap">
-		<h3 class="text-xl font-black text-black relative inline-block">
-			最近执行
-			<div class="absolute -top-1 -right-4 w-3 h-3 bg-[#ff6b6b] rounded-full border-2 border-black"></div>
-		</h3>
-		<a href="/logs"
-			class="inline-flex items-center px-4 py-2 border-4 border-black bg-[#48dbfb] text-black font-black text-xs shadow-[4px_4px_0px_#000] transition-all duration-150 hover:bg-[#feca57] hover:shadow-[6px_6px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none">
-			查看全部执行记录
+		<h3 class="text-base font-semibold text-slate-900">最近执行</h3>
+		<a href="/logs" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+			查看全部
 		</a>
 	</div>
 	{% if recent_logs %}
-	<div class="border-4 border-black bg-white shadow-[6px_6px_0px_#000] overflow-x-auto">
-		<table class="min-w-full text-sm table-auto">
-			<thead class="bg-[#feca57] border-b-4 border-black">
-				<tr>
-					<th class="text-left px-4 py-3 font-black text-black text-xs">账号</th>
-					<th class="text-left px-4 py-3 font-black text-black text-xs">Provider</th>
-					<th class="text-left px-4 py-3 font-black text-black text-xs">状态</th>
-					<th class="text-left px-4 py-3 font-black text-black text-xs">原因分类</th>
-					<th class="text-left px-4 py-3 font-black text-black text-xs">余额</th>
-					<th class="text-left px-4 py-3 font-black text-black text-xs">触发</th>
-					<th class="text-left px-4 py-3 font-black text-black text-xs">时间</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for log in recent_logs %}
-				<tr class="border-b-4 border-black {% if loop.index is odd %}bg-white{% else %}bg-pink-100{% endif %}">
-					<td class="px-4 py-3 font-bold text-black"><span class="block max-w-[140px] truncate" title="{{ log.account_name }}">{{ log.account_name }}</span></td>
-					<td class="px-4 py-3 font-bold text-black">{{ log.provider }}</td>
-					<td class="px-4 py-3">
-						<span class="inline-flex px-2 py-1 border-4 border-black text-xs font-black
-							{% if log.status == 'success' %}bg-[#1dd1a1] text-black
-							{% elif log.status == 'already_checked_in' %}bg-[#feca57] text-black
-							{% else %}bg-[#ff6b6b] text-white{% endif %}">
-							{% if log.status == 'success' %}成功
-							{% elif log.status == 'already_checked_in' %}今日已签到
-							{% else %}失败{% endif %}
-						</span>
-					</td>
-					<td class="px-4 py-3 text-xs max-w-[200px]">
-						{% if log.status != 'success' %}
-						<div class="mb-1">
-							<span class="inline-flex px-2 py-0.5 border-4 border-black text-[11px] font-black
-								{% if log.error_category == 'already_checked_in' %}bg-[#feca57] text-black{% else %}bg-[#48dbfb] text-black{% endif %}">
+	<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+		<div class="overflow-x-auto">
+			<table class="min-w-full text-sm">
+				<thead class="bg-gray-50 border-b border-gray-200">
+					<tr>
+						<th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">账号</th>
+						<th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider hidden sm:table-cell">Provider</th>
+						<th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">状态</th>
+						<th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider hidden lg:table-cell">原因分类</th>
+						<th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider hidden sm:table-cell">余额</th>
+						<th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider hidden md:table-cell">触发</th>
+						<th class="text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">时间</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-100">
+					{% for log in recent_logs %}
+					<tr class="hover:bg-gray-50 transition-colors">
+						<td class="px-4 py-3 text-slate-900 font-medium"><span class="block max-w-[140px] truncate" title="{{ log.account_name }}">{{ log.account_name }}</span></td>
+						<td class="px-4 py-3 text-slate-600 hidden sm:table-cell">{{ log.provider }}</td>
+						<td class="px-4 py-3">
+							<span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium
+								{% if log.status == 'success' %}bg-emerald-50 text-emerald-700
+								{% elif log.status == 'already_checked_in' %}bg-amber-50 text-amber-700
+								{% else %}bg-red-50 text-red-700{% endif %}">
+								{% if log.status == 'success' %}成功
+								{% elif log.status == 'already_checked_in' %}已签到
+								{% else %}失败{% endif %}
+							</span>
+						</td>
+						<td class="px-4 py-3 text-xs max-w-[200px] hidden lg:table-cell">
+							{% if log.status != 'success' %}
+							<span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium
+								{% if log.error_category == 'already_checked_in' %}bg-amber-50 text-amber-700{% else %}bg-blue-50 text-blue-700{% endif %}">
 								{{ log.error_category_label }}
 							</span>
-						</div>
-						<p class="font-bold text-black/80 leading-snug">{{ log.error_category_hint }}</p>
-						{% if log.message %}
-						<p class="mt-1 font-mono text-[11px] text-black/70 truncate" title="{{ log.message }}">原始: {{ log.message }}</p>
-						{% endif %}
-						{% else %}
-						<span class="font-bold text-black">-</span>
-						{% endif %}
-					</td>
-					<td class="px-4 py-3 font-black text-black">{{ '$%.2f'|format(log.balance) if log.balance is not none else '-' }}</td>
-					<td class="px-4 py-3">
-						<span class="font-bold text-xs {% if log.triggered_by == 'manual' %}text-[#5f27cd]{% else %}text-black{% endif %}">{% if log.triggered_by == 'manual' %}手动{% else %}定时{% endif %}</span>
-					</td>
-					<td class="px-4 py-3 font-bold text-black text-xs">{{ log.created_at[:16] }}</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
+							<p class="text-slate-500 leading-snug mt-0.5">{{ log.error_category_hint }}</p>
+							{% if log.message %}
+							<p class="mt-0.5 font-mono text-[11px] text-slate-400 truncate" title="{{ log.message }}">{{ log.message }}</p>
+							{% endif %}
+							{% else %}
+							<span class="text-slate-400">-</span>
+							{% endif %}
+						</td>
+						<td class="px-4 py-3 text-slate-700 font-medium hidden sm:table-cell">{{ '$%.2f'|format(log.balance) if log.balance is not none else '-' }}</td>
+						<td class="px-4 py-3 hidden md:table-cell">
+							<span class="text-xs font-medium {% if log.triggered_by == 'manual' %}text-indigo-600{% else %}text-slate-500{% endif %}">{% if log.triggered_by == 'manual' %}手动{% else %}定时{% endif %}</span>
+						</td>
+						<td class="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{{ log.created_at[:16] }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
 	</div>
 	{% else %}
-	<div class="border-4 border-black p-10 text-center bg-white shadow-[6px_6px_0px_#000]">
-		<p class="font-black text-black">暂无执行记录</p>
+	<div class="bg-white rounded-xl border border-gray-200 p-10 text-center shadow-sm">
+		<p class="text-slate-500">暂无执行记录</p>
 	</div>
 	{% endif %}
 </div>

@@ -1,15 +1,22 @@
-// Toast notification - Memphis style
+// Toast notification
 function showToast(message, type = 'success') {
 	const container = document.getElementById('toast-container');
 	const toast = document.createElement('div');
-	const colors = type === 'success'
-		? 'bg-[#1dd1a1] text-black border-4 border-black'
-		: type === 'error'
-			? 'bg-[#ff6b6b] text-white border-4 border-black'
-			: 'bg-[#48dbfb] text-black border-4 border-black';
+	const styles = {
+		success: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+		error: 'bg-red-50 text-red-800 border-red-200',
+		info: 'bg-blue-50 text-blue-800 border-blue-200',
+	};
+	const icons = {
+		success: '<svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+		error: '<svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>',
+		info: '<svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>',
+	};
+	const colorClass = styles[type] || styles.info;
+	const icon = icons[type] || icons.info;
 
-	toast.className = `toast ${colors} px-5 py-3 shadow-[4px_4px_0px_#000] font-black text-sm`;
-	toast.textContent = message;
+	toast.className = `toast flex items-center ${colorClass} border rounded-lg px-4 py-3 shadow-sm text-sm font-medium`;
+	toast.innerHTML = `${icon}<span>${message}</span>`;
 	container.appendChild(toast);
 	setTimeout(() => toast.remove(), 3000);
 }
@@ -19,7 +26,8 @@ async function runCheckinAll() {
 	const btn = document.getElementById('btn-checkin-all');
 	if (btn) {
 		btn.disabled = true;
-		btn.innerHTML = '<svg class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>签到中...';
+		btn.innerHTML = '<svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>签到中...';
+		btn.classList.add('opacity-70', 'cursor-not-allowed');
 	}
 	try {
 		const res = await fetch('/api/checkin/all', { method: 'POST' });
@@ -35,7 +43,8 @@ async function runCheckinAll() {
 	} finally {
 		if (btn) {
 			btn.disabled = false;
-			btn.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>立即全部签到';
+			btn.classList.remove('opacity-70', 'cursor-not-allowed');
+			btn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>立即全部签到';
 		}
 	}
 }
