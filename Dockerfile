@@ -19,7 +19,10 @@ RUN pip install --no-cache-dir \
     "aiosqlite>=0.20.0" \
     "apscheduler>=3.10.0" \
     "python-jose[cryptography]>=3.3.0" \
-    "python-multipart>=0.0.9"
+    "python-multipart>=0.0.9" \
+    "playwright>=1.40.0"
+
+RUN playwright install --with-deps chromium
 
 COPY . .
 
