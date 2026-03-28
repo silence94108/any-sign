@@ -40,7 +40,7 @@ async def startup():
 async def login_page(request: Request):
 	if is_authenticated(request):
 		return RedirectResponse(url='/', status_code=302)
-	return templates.TemplateResponse('login.html', {'request': request, 'error': None})
+	return templates.TemplateResponse(request, 'login.html', {'error': None})
 
 
 @app.post('/login', response_class=HTMLResponse)
@@ -48,7 +48,7 @@ async def login_submit(request: Request, password: Annotated[str, Form(...)]):
 	if verify_password(password):
 		response = RedirectResponse(url='/', status_code=302)
 		return set_auth_cookie(response)
-	return templates.TemplateResponse('login.html', {'request': request, 'error': '密码错误'})
+	return templates.TemplateResponse(request, 'login.html', {'error': '密码错误'})
 
 
 @app.get('/logout')
@@ -75,8 +75,7 @@ async def dashboard(request: Request):
 	from web.scheduler import get_next_run_time
 	next_run = get_next_run_time()
 
-	return templates.TemplateResponse('dashboard.html', {
-		'request': request,
+	return templates.TemplateResponse(request, 'dashboard.html', {
 		'accounts': accounts,
 		'success_count': success_count,
 		'recent_logs': recent_logs,

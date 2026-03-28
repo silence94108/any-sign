@@ -45,8 +45,7 @@ def _normalize_waf_cookie_names(raw) -> list[str]:
 async def providers_page(request: Request):
 	from web.app import templates
 	providers = await get_all_providers()
-	return templates.TemplateResponse('providers.html', {
-		'request': request,
+	return templates.TemplateResponse(request, 'providers.html', {
 		'providers': providers,
 		'active_page': 'providers',
 	})

@@ -22,8 +22,7 @@ async def accounts_page(request: Request):
 	from web.app import templates
 	accounts = await get_all_accounts()
 	providers = await get_all_providers()
-	return templates.TemplateResponse('accounts.html', {
-		'request': request,
+	return templates.TemplateResponse(request, 'accounts.html', {
 		'accounts': accounts,
 		'providers': providers,
 		'active_page': 'accounts',

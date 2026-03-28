@@ -39,8 +39,7 @@ async def logs_page(request: Request):
 
 	accounts = await get_all_accounts()
 
-	return templates.TemplateResponse('logs.html', {
-		'request': request,
+	return templates.TemplateResponse(request, 'logs.html', {
 		'logs': logs,
 		'accounts': accounts,
 		'current_page': page,
