@@ -141,5 +141,5 @@ def summarize_reason(status: str | None, message: str | None) -> dict:
 		'error_category': category,
 		'error_category_label': meta['label'],
 		'error_category_hint': meta['hint'],
-		'error_category_actionable': meta['actionable'],
+		'error_category_actionable': str(meta['actionable']).lower(),
 	}
