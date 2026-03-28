@@ -1,4 +1,5 @@
 import asyncio
+import json
 import sys
 from pathlib import Path
 from unittest.mock import AsyncMock
@@ -7,16 +8,24 @@ from unittest.mock import AsyncMock
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from checkin import execute_check_in
+from checkin import execute_check_in, get_user_info
 from utils.config import ProviderConfig
 from web import scheduler
 
 
 class _MockResponse:
-	def __init__(self, status_code: int, json_data=None, text: str = ''):
+	def __init__(self, status_code: int, json_data=None, text: str = '', headers=None, encoding: str = 'utf-8'):
 		self.status_code = status_code
 		self._json_data = json_data
-		self.text = text
+		self.headers = headers or {}
+		self.encoding = encoding
+		if json_data is not None and not isinstance(json_data, Exception):
+			self.content = json.dumps(json_data, ensure_ascii=False).encode(encoding)
+			self.text = self.content.decode(encoding, errors='replace')
+			self.headers.setdefault('content-type', f'application/json; charset={encoding}')
+		else:
+			self.text = text
+			self.content = text.encode(encoding, errors='replace')
 
 	def json(self):
 		if isinstance(self._json_data, Exception):
@@ -25,11 +34,17 @@ class _MockResponse:
 
 
 class _MockClient:
-	def __init__(self, response: _MockResponse):
+	def __init__(self, response: _MockResponse | None = None, *, get_response: _MockResponse | None = None,
+				 post_response: _MockResponse | None = None):
 		self._response = response
+		self._get_response = get_response or response
+		self._post_response = post_response or response
 
 	def post(self, *args, **kwargs):
-		return self._response
+		return self._post_response
+
+	def get(self, *args, **kwargs):
+		return self._get_response
 
 
 def test_execute_check_in_success_branch():
@@ -89,6 +104,21 @@ def test_execute_check_in_network_failure_branch():
 	assert result['success'] is False
 	assert result['status'] == 'failed'
 	assert 'timed out' in result['message'].lower()
+
+
+def test_get_user_info_handles_gbk_json_response():
+	resp = _MockResponse(
+		200,
+		{'success': True, 'data': {'quota': 54000000, 'used_quota': 1230000}},
+		encoding='gb18030',
+	)
+	client = _MockClient(get_response=resp)
+
+	result = get_user_info(client, {}, 'https://example.com/api/user/self')
+
+	assert result['success'] is True
+	assert result['quota'] == 108.0
+	assert result['used_quota'] == 2.46
 
 
 def test_scheduler_cookie_mode_records_already_checked_in(monkeypatch):

@@ -85,6 +85,34 @@ def is_already_checked_in_message(message: str | None) -> bool:
 	return any(keyword in text for keyword in keywords)
 
 
+def decode_response_text(response) -> str:
+	"""Decode HTTP response body with common fallbacks for non-UTF8 sites."""
+	content = getattr(response, 'content', b'') or b''
+	if not content:
+		return getattr(response, 'text', '') or ''
+
+	encodings = []
+	response_encoding = getattr(response, 'encoding', None)
+	if response_encoding:
+		encodings.append(response_encoding)
+	encodings.extend(['utf-8', 'gb18030', 'gbk'])
+
+	seen = set()
+	for encoding in encodings:
+		if not encoding:
+			continue
+		encoding_name = encoding.lower()
+		if encoding_name in seen:
+			continue
+		seen.add(encoding_name)
+		try:
+			return content.decode(encoding)
+		except (LookupError, UnicodeDecodeError):
+			continue
+
+	return content.decode('utf-8', errors='replace')
+
+
 def is_cloudflare_h2_challenge(response) -> bool:
 	"""检测 Cloudflare 针对 HTTP/2 的 challenge（403 + cf-mitigated header）"""
 	if response.status_code != 403:
@@ -95,7 +123,7 @@ def is_cloudflare_h2_challenge(response) -> bool:
 	# 部分 Cloudflare 挑战不带 cf-mitigated，检查响应体
 	content_type = response.headers.get('content-type', '').lower()
 	if 'text/html' in content_type:
-		text = response.text or ''
+		text = decode_response_text(response)
 		if 'cf-chl' in text.lower() or 'just a moment' in text.lower():
 			return True
 	return False
@@ -193,19 +221,29 @@ def get_user_info(client, headers, user_info_url: str):
 	try:
 		response = client.get(user_info_url, headers=headers, timeout=30)
 
-		if response.status_code == 200:
-			data = response.json()
-			if data.get('success'):
-				user_data = data.get('data', {})
-				quota = round(user_data.get('quota', 0) / 500000, 2)
-				used_quota = round(user_data.get('used_quota', 0) / 500000, 2)
-				return {
-					'success': True,
-					'quota': quota,
-					'used_quota': used_quota,
-					'display': f':money: Current balance: ${quota}, Used: ${used_quota}',
-				}
-		return {'success': False, 'error': f'Failed to get user info: HTTP {response.status_code}'}
+		if response.status_code != 200:
+			return {'success': False, 'error': f'Failed to get user info: HTTP {response.status_code}'}
+
+		response_text = decode_response_text(response)
+		try:
+			data = json.loads(response_text)
+		except json.JSONDecodeError:
+			snippet = response_text.strip().replace('\n', ' ')[:80] or 'empty response'
+			return {'success': False, 'error': f'Failed to get user info: Invalid response format ({snippet})'}
+
+		if data.get('success'):
+			user_data = data.get('data', {})
+			quota = round((user_data.get('quota') or 0) / 500000, 2)
+			used_quota = round((user_data.get('used_quota') or 0) / 500000, 2)
+			return {
+				'success': True,
+				'quota': quota,
+				'used_quota': used_quota,
+				'display': f':money: Current balance: ${quota}, Used: ${used_quota}',
+			}
+
+		error_msg = data.get('msg') or data.get('message') or data.get('error') or 'Unknown error'
+		return {'success': False, 'error': f'Failed to get user info: {error_msg}'}
 	except Exception as e:
 		return {'success': False, 'error': f'Failed to get user info: {str(e)[:50]}...'}
 
@@ -292,11 +330,7 @@ def _execute_check_in_once(client, account_name: str, provider_config, headers: 
 	print(f'[RESPONSE] {account_name}: Response status code {response.status_code}')
 
 	if response.status_code != 200:
-		try:
-			response_text = response.content.decode('utf-8')
-		except UnicodeDecodeError:
-			response_text = response.content.decode('gbk', errors='replace')
-		response_text = response_text or ''
+		response_text = decode_response_text(response)
 		# 检测 Cloudflare HTTP/2 挑战（403 + cf-mitigated: challenge）
 		if is_cloudflare_h2_challenge(response):
 			print(f'[CF-H2] {account_name}: Cloudflare HTTP/2 challenge detected (403)')
@@ -316,11 +350,7 @@ def _execute_check_in_once(client, account_name: str, provider_config, headers: 
 		return {'success': False, 'status': 'failed', 'message': error_msg}
 
 	# 检测 200 响应中的 WAF 拦截（HTML 而非 JSON）
-	try:
-		response_text = response.content.decode('utf-8')
-	except UnicodeDecodeError:
-		response_text = response.content.decode('gbk', errors='replace')
-	response_text = response_text or ''
+	response_text = decode_response_text(response)
 	if is_waf_challenge_response(response_text):
 		print(f'[WAF] {account_name}: WAF challenge detected in 200 response body')
 		return {'success': False, 'status': 'failed',
@@ -367,7 +397,8 @@ def _execute_check_in_once(client, account_name: str, provider_config, headers: 
 				'message': 'Check-in successful',
 			}
 
-		error_msg = 'Check-in failed - Invalid response format'
+		snippet = response_text.strip().replace('\n', ' ')[:80] or 'empty response'
+		error_msg = f'Check-in failed - Invalid response format ({snippet})'
 		print(f'[FAILED] {account_name}: {error_msg}')
 		return {'success': False, 'status': 'failed', 'message': error_msg}
 
