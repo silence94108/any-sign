@@ -292,7 +292,11 @@ def _execute_check_in_once(client, account_name: str, provider_config, headers: 
 	print(f'[RESPONSE] {account_name}: Response status code {response.status_code}')
 
 	if response.status_code != 200:
-		response_text = response.text or ''
+		try:
+			response_text = response.content.decode('utf-8')
+		except UnicodeDecodeError:
+			response_text = response.content.decode('gbk', errors='replace')
+		response_text = response_text or ''
 		# 检测 Cloudflare HTTP/2 挑战（403 + cf-mitigated: challenge）
 		if is_cloudflare_h2_challenge(response):
 			print(f'[CF-H2] {account_name}: Cloudflare HTTP/2 challenge detected (403)')
@@ -312,7 +316,11 @@ def _execute_check_in_once(client, account_name: str, provider_config, headers: 
 		return {'success': False, 'status': 'failed', 'message': error_msg}
 
 	# 检测 200 响应中的 WAF 拦截（HTML 而非 JSON）
-	response_text = response.text or ''
+	try:
+		response_text = response.content.decode('utf-8')
+	except UnicodeDecodeError:
+		response_text = response.content.decode('gbk', errors='replace')
+	response_text = response_text or ''
 	if is_waf_challenge_response(response_text):
 		print(f'[WAF] {account_name}: WAF challenge detected in 200 response body')
 		return {'success': False, 'status': 'failed',
@@ -320,7 +328,8 @@ def _execute_check_in_once(client, account_name: str, provider_config, headers: 
 				'_waf_challenge': True}
 
 	try:
-		result = response.json()
+		import json as _json
+		result = _json.loads(response_text)
 		raw_msg = result.get('msg') or result.get('message') or result.get('error') or ''
 
 		if result.get('ret') == 1 or result.get('code') == 0 or result.get('success'):
